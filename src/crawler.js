@@ -32,7 +32,10 @@ module.exports = class Crawler {
   get crawled () { return this._crawled }
 
   get homepage () { return this._homepage }
+
+  set rootDomain (domain) { this._rootDomain = domain }
   get rootDomain () { return this._rootDomain }
+
   get errors () { return this._errors }
   get externalLinks () { return this._externalLinks }
   get singleDomain () { return this._singleDomain }

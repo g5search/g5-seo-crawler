@@ -1,6 +1,6 @@
 const Crawler = require('./crawler')
 const audits = require('./audits')
-
+const domain = require('./utilities/domain')
 module.exports = class Auditer extends Crawler {
   constructor (params) {
     super(params)
@@ -16,8 +16,8 @@ module.exports = class Auditer extends Crawler {
       'audit',
       'afterAudit'
     ]
-    this.beforeAudit = []
-    this.afterAudit = []
+    this._beforeAudit = []
+    this._afterAudit = []
     this._results = {}
   }
 
@@ -30,5 +30,32 @@ module.exports = class Auditer extends Crawler {
   get audit () { return this._audit }
   get hooks () { return this._hooks }
   get results () { return this._results }
-  
+
+  init () {
+    console.log(`Auditing ${this._homepage}`)
+    this.rootDomain(domain.root(this._homepage))
+
+    if (domain.isPath(this._rootDomain)) {
+      this.rootDomain(this._rootDomain.slice(0, -1))
+    }
+
+    this.addAudits()
+  }
+
+  addAudits () {
+    Object
+      .keys(this._enabledAudits)
+      .forEach((key) => {
+        if (this._enabledAudits[key]) {
+          const details = this._audits[key].getDetails()
+          this.addAudits(key, this._audits[key].run, details)
+        }
+      }, this)
+  }
+
+  addAudit (name, fn, details) {
+    this[details.type].push({
+      
+    })
+  }
 }
