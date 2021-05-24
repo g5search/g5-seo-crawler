@@ -1,0 +1,22 @@
+module.exports = {
+  'name': '{{location_name}}',
+  'city': '{{location_city}}',
+  'state': '{{location_state}}',
+  'neighborhood': '{{location_neighborhood}}',
+  'neighborhood_2': '{{location_neighborhood_2}}',
+  'property_feature_1': '{{location_qualifier}}',
+  'floor_plans': '{{location_floor_plans}}',
+  'apartment_amenity_1': '{{location_apartment_amenity_1}}',
+  'apartment_amenity_2': '{{location_apartment_amenity_2}}',
+  'apartment_amenity_3': '{{location_apartment_amenity_3}}',
+  'community_amenity_1': '{{location_community_amenity_1}}',
+  'community_amenity_2': '{{location_community_amenity_2}}',
+  'community_amenity_3': '{{location_community_amenity_3}}',
+  'landmark_1_name': '{{location_primary_landmark}}',
+  'care_level_1': '{{location_care_level_1}}',
+  'care_level_2': '{{location_care_level_2}}',
+  'care_level_3': '{{location_care_level_3}}',
+  'care_level_4': '{{location_care_level_4}}',
+  'care_level_5': '{{location_care_level_5}}',
+  'care_level_6': '{{location_care_level_6}}'
+}
