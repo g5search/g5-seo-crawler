@@ -1,7 +1,7 @@
-const hubPropAndLiquid = require('../config/hub-prop-and-liquid')
-const primaryOfferings = require('../config/primary-offerings')
-const standardPageNames = require('../config/standard-page-names')
-const standardServices = require('../config/standard-services')
+const hubPropAndLiquid = require('./config/hub-prop-and-liquid')
+const primaryOfferings = require('./config/primary-offerings')
+const standardPageNames = require('./config/standard-page-names')
+const standardServices = require('./config/standard-services')
 
 /**
  *This class is responsible for counting various keywords on each page of a website.

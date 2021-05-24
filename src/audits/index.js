@@ -9,7 +9,8 @@ fs
     const audit = require(path.join(__dirname, f))
     const { name } = audit.getDetails()
     console.log(`Loaded ${name} Audit.`)
-    audits[name] = audit
+    const filename = f.replace('.js', '')
+    audits[filename] = audit
   })
 
 module.exports = Object.assign(audits)

@@ -23,8 +23,8 @@ app.post('/', async (req, res) => {
     //   config
     // } = req.body
     const audit = new Audit(req.body)
-    // res.json(audit.results)
-    res.send(200)
+    res.json(audit.results)
+    // res.send(200)
   } catch (err) {
     res.status(503).send(err)
   }

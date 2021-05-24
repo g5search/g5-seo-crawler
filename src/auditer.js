@@ -51,11 +51,14 @@ module.exports = class Auditer extends Crawler {
           this.addAudits(key, this._audits[key].run, details)
         }
       }, this)
+    console.log(this.audits)
   }
 
   addAudit (name, fn, details) {
     this[details.type].push({
-      
+      checkName: name,
+      checkFunction: fn,
+      ...details
     })
   }
 }

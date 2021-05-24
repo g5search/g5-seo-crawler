@@ -1,5 +1,4 @@
-const fs = require('fs')
-const CheckKeywords = require('../keywordsClass')
+const CheckKeywords = require('../keywords')
 const reject = require('../utilities/reject')
 
 module.exports = {
@@ -13,7 +12,7 @@ function getDetails () {
     headers: [],
     description: null,
     displayAs: 'table',
-    type: 'afterAudit'
+    type: '_afterAudit'
   }
 }
 

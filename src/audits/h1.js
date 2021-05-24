@@ -9,7 +9,7 @@ function getDetails () {
     headers: [],
     description: null,
     displayAs: null,
-    type: 'afterAudit'
+    type: '_afterAudit'
   }
 }
 
