@@ -10,7 +10,7 @@ module.exports = {
 
 async function getSitemapUrl (locationUrn, clientUrn, domain) {
   const cmsUrl = getCmsUrl(clientUrn)
-  const token = getAuthToken()
+  const { token } = await getAuthToken()
   const url = `${cmsUrl}/websites?access_token=${token.access_token}`
   const websites = await getWebsites(url)
   const clw = getClw(locationUrn, websites.websites)

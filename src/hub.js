@@ -35,21 +35,21 @@ function getAuthToken () {
 }
 
 async function getLocation (clientUrn, locationUrn) {
-  const token = await getAuthToken()
+  const { token } = await getAuthToken()
   const url = `${HUB_URL}/clients/${clientUrn}/locations/${locationUrn}.json?access_token=${token.access_token}`
   const location = await axios.get(url).then(res => res.data)
   return location
 }
 
 async function getClient (clientUrn) {
-  const token = await getAuthToken()
+  const { token } = await getAuthToken()
   const url = `${HUB_URL}/clients/${clientUrn}.json?access_token=${token.access_token}`
   const client = await axios.get(url).then(res => res.data)
   return client
 }
 
 async function getSitemapType (locationUrn, clientUrn) {
-  const token = await getAuthToken()
+  const { token } = await getAuthToken()
   const url = `${HUB_URL}/clients/${clientUrn}.json?access_token=${token.access_token}`
   const hubData = await axios.get(url).then(res => res.data)
   const { locations, domain, domain_type, vertical } = hubData.client
