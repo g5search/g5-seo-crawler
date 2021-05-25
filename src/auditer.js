@@ -160,8 +160,8 @@ module.exports = class Auditer extends Crawler {
         for (let i = 0; i < results.length; i++) {
           const audit = results[i]
           const { name, pass, fail } = audit
-          this.afterAuditResults(pass, name, 'Passed', audit)
-          this.afterAuditResults(fail, name, 'Failed', audit)
+          this.afterAuditResults(pass, name, 'pass', audit)
+          this.afterAuditResults(fail, name, 'fail', audit)
         }
       }
     } catch (err) {
