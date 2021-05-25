@@ -137,12 +137,9 @@ module.exports = class CheckKeywords {
   getPrimaryOfferings () {
     const primoff = {}
     const primOffByVertical = primaryOfferings[this.vertical]
-    const metadata = Object.keys(this.audit._enabledMetadata)
     const titletagArry = Object.keys(this.audit._metadata).map((url) => {
-      if (!metadata.includes(url)) {
         return this.audit.metadata[url]['title-tags'].trim()
-      }
-    }).filter(t => t)
+    })
     const checkforDuplicates = []
     titletagArry.forEach((tt) => {
       primOffByVertical.forEach((e, i) => {
