@@ -17,9 +17,9 @@ async function run (audit) {
   const { name } = getDetails()
   const metadata = []
   Object.keys(audit.metadata).forEach((url) => {
-    metaData.push({
+    metadata.push({
       url,
-      titleTag: audit.metadata[url].titleTag
+      titleTag: audit.metadata[url]['title-tags']
     })
   })
   const { pass, fail } = getDuplicates(metadata)

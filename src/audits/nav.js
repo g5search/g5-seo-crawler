@@ -34,8 +34,9 @@ async function run (audit) {
   const { name } = getDetails()
   let links = []
   Object.keys(audit.metadata).forEach((url) => {
-    links = links.concat(audit.metadata[url].navigation)
+    links = links.concat(audit.metadata[url].nav)
   })
+  links = links.filter(l => l)
   const dedupe = links.reduce((unique, o) => {
     if (!unique.some(obj => obj.link === o.link && obj.text === o.text)) {
       unique.push(o)

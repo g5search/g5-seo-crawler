@@ -51,7 +51,7 @@ module.exports = class CheckKeywords {
    */
   getAllPageNames () {
     let pageNameArr = []
-    Object.keys(this.audit.results).forEach((url) => {
+    Object.keys(this.audit._results).forEach((url) => {
       if (!(this.domainStrat === 'single' && url === this.rootDomain)) {
         pageNameArr.push(this.getPageName(url))
       }
@@ -60,7 +60,7 @@ module.exports = class CheckKeywords {
   }
 
   getAllURLs () {
-    return Object.keys(this.audit.results).filter((url) => {
+    return Object.keys(this.audit._results).filter((url) => {
       return !(this.domainStrat === 'single' && url === this.rootDomain)
     })
   }
@@ -92,7 +92,7 @@ module.exports = class CheckKeywords {
       liquid,
       'reason': undefined,
       'passing': undefined,
-      'titleTag': this.audit.metaData[this.url].titleTag,
+      'titleTag': this.audit.metadata[this.url]['title-tags'],
       'pageName': this.auditpagename
     }
   }
@@ -137,9 +137,12 @@ module.exports = class CheckKeywords {
   getPrimaryOfferings () {
     const primoff = {}
     const primOffByVertical = primaryOfferings[this.vertical]
-    const titletagArry = Object.keys(this.audit.metaData).map((url) => {
-      return this.audit.metaData[url].titleTag.trim()
-    })
+    const metadata = Object.keys(this.audit._enabledMetadata)
+    const titletagArry = Object.keys(this.audit._metadata).map((url) => {
+      if (!metadata.includes(url)) {
+        return this.audit.metadata[url]['title-tags'].trim()
+      }
+    }).filter(t => t)
     const checkforDuplicates = []
     titletagArry.forEach((tt) => {
       primOffByVertical.forEach((e, i) => {
@@ -434,7 +437,7 @@ module.exports = class CheckKeywords {
    */
   checkKeywords (url) {
     const keywordObj = this.buildKeywordObjectForChecks(url)
-    const copy = this.audit.metaData[url].body
+    const copy = this.audit.metadata[url].body
     if (keywordObj) {
       const keys = Object.keys(keywordObj)
       keys.forEach((key) => {

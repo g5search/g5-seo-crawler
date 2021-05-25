@@ -10,8 +10,8 @@ module.exports = class Auditer extends Crawler {
     this._config = params.config
     this._audits = audits
     this._enabledAudits = params.enabledAudits
-    this._metadata = metadata
-    this._enabledMetadata = params.enabledMetadata
+    this._metadata = {}
+    this._enabledMetadata = metadata
     this._hub = {}
     this._audit = []
     this._hooks = [
@@ -29,7 +29,10 @@ module.exports = class Auditer extends Crawler {
   get enabledAudits () { return this._enabledAudits }
   get metadata () { return this._metadata }
   get enabledMetadata () { return this._enabledMetadata }
+
+  set hub (val) { this._hub = val }
   get hub () { return this._hub }
+
   get audit () { return this._audit }
   get hooks () { return this._hooks }
 
@@ -106,9 +109,9 @@ module.exports = class Auditer extends Crawler {
     const $ = this.cheerio.load(page)
     const metadata = {}
 
-    for (let i = 0; i < Object.keys(this._enabledMetadata); i++) {
+    for (let i = 0; i < Object.keys(this._enabledMetadata).length; i++) {
       const key = Object.keys(this._enabledMetadata)[i]
-      metadata[key] = this._enabledMetadata($)
+      metadata[key] = this._enabledMetadata[key]($)
     }
 
     return metadata
@@ -116,10 +119,12 @@ module.exports = class Auditer extends Crawler {
 
   async start () {
     try {
+      await this.getSitemap()
       this.init()
+      this.hub = await hub.getLocation(this._clientUrn, this._locationUrn)
+      await this.getSiteSettings(this._clientUrn, this._locationUrn)
       let url = this._homepage
       let page = await this.requestPage(url)
-      this._hub = await hub.getLocation(this._clientUrn, this._locationUrn)
       this.crawled = url
       this.getLinks(page)
       this._metadata[url] = this.getMetadata(page)
@@ -139,7 +144,7 @@ module.exports = class Auditer extends Crawler {
         page = await this.requestPage(url)
         this.crawled = url
         this.getLinks(page)
-        this.metadata[url] = this.getMetadata(page)
+        this._metadata[url] = this.getMetadata(page)
         console.log(url)
 
         if (!url.includes('blog')) {

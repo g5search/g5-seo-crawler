@@ -8,6 +8,7 @@ const axios = require('axios').create({
 
 const hub = require('./hub')
 const cms = require('./cms')
+const sitemapper = require('./utilities/sitemapper')
 
 module.exports = class Crawler {
   constructor (params) {
@@ -19,8 +20,8 @@ module.exports = class Crawler {
     this._rootDomain = params.rootDomain
     this._errors = []
     this._externalLinks = []
-    this._singleDomain = params.singleDomain
-    this._corporate = params.corporate
+    this._singleDomain = false
+    this._corporate = false
     this._clientUrn = params.clientUrn
     this._locationUrn = params.locationUrn
     this._sitemapUrl = null
@@ -29,7 +30,13 @@ module.exports = class Crawler {
     this._discoverLinks = params.discoverLinks || true
   }
 
-  set pages (url) { this._pages.push(url) }
+  set pages (val) {
+    if (Array.isArray(val)) {
+      this._pages = val
+    } else {
+      this._pages.push(val)
+    }
+  }
   get pages () { return this._pages }
 
   set crawled (url) { this._crawled.push(url) }
@@ -151,8 +158,6 @@ module.exports = class Crawler {
   }
 
   async getSitemap () {
-    let sitemapUrl
-
     if (this.locationUrn) {
       const {
         domain_type,
@@ -166,18 +171,24 @@ module.exports = class Crawler {
       this.vertical = vertical
 
       if (domain_type === 'SingleDomainClient') {
-        sitemapUrl = await cms.getSitemapUrl(this.locationUrn, this.clientUrn, rootDomain)
+        this.sitemapUrl = await cms.getSitemapUrl(this.locationUrn, this.clientUrn, rootDomain)
+      } else {
+        this.sitemapUrl = `${this.rootDomain}/sitemap.xml`
       }
+
+      const pages = await sitemapper(this.sitemapUrl)
+      this.pages = pages.sites
+      this.discoverLinks = false
     }
-  }
+}
 
   async getSiteSettings (clientUrn, locationUrn) {
     const client = await hub.getClient(clientUrn)
-    const location = await hub.getLocation(locationUrn)
+    const location = await hub.getLocation(clientUrn, locationUrn)
     this.isCorporate = location.location.corporate
-    this.locationName = location.internal_branded_name
-      ? location.internal_branded_name
-      : location.name
+    this.locationName = location.location.internal_branded_name
+      ? location.location.internal_branded_name
+      : location.location.name
     this.singleDomain = client.client.domain_type !== 'MultiDomainClient'
   }
 
