@@ -1,6 +1,9 @@
 const Crawler = require('./crawler')
 const audits = require('./audits')
+const metadata = require('./metadata')
+const hub = require('./hub')
 const domain = require('./utilities/domain')
+
 module.exports = class Auditer extends Crawler {
   constructor (params) {
     super(params)
@@ -12,9 +15,9 @@ module.exports = class Auditer extends Crawler {
     this._hub = {}
     this._audit = []
     this._hooks = [
-      'beforeAudit',
-      'audit',
-      'afterAudit'
+      '_beforeAudit',
+      '_audit',
+      '_afterAudit'
     ]
     this._beforeAudit = []
     this._afterAudit = []
@@ -29,14 +32,25 @@ module.exports = class Auditer extends Crawler {
   get hub () { return this._hub }
   get audit () { return this._audit }
   get hooks () { return this._hooks }
-  get results () { return this._results }
+
+  set results ({ results, url }) {
+    console.log({ url, results })
+    this._results[url] = results
+  }
+  get results () {
+    return {
+      results: this._results,
+      locationUrn: this.locationUrn,
+      clientUrn: this.clientUrn
+    }
+  }
 
   init () {
     console.log(`Auditing ${this._homepage}`)
-    this.rootDomain(domain.root(this._homepage))
+    this.rootDomain = domain.root(this._homepage)
 
     if (domain.isPath(this._rootDomain)) {
-      this.rootDomain(this._rootDomain.slice(0, -1))
+      this.rootDomain = this._rootDomain.slice(0, -1)
     }
 
     this.addAudits()
@@ -48,10 +62,9 @@ module.exports = class Auditer extends Crawler {
       .forEach((key) => {
         if (this._enabledAudits[key]) {
           const details = this._audits[key].getDetails()
-          this.addAudits(key, this._audits[key].run, details)
+          this.addAudit(key, this._audits[key].run, details)
         }
       }, this)
-    console.log(this.audits)
   }
 
   addAudit (name, fn, details) {
@@ -60,5 +73,118 @@ module.exports = class Auditer extends Crawler {
       checkFunction: fn,
       ...details
     })
+  }
+
+  async runAudit (url, page) {
+    const results = []
+    this._audit.forEach((check) => {
+      results.push(check.checkFunction(this.cheerio, page, url, this))
+    })
+
+    return await Promise.all(results)
+  }
+
+  async runBeforeAudit (url, page) {
+    const results = []
+    this._beforeAudit.forEach((check) => {
+      results.push(check.checkFunction(this.cheerio, page, url, this))
+    })
+
+    return await Promise.all(results)
+  }
+
+  async runAfterAudit () {
+    const results = []
+    this._afterAudit.forEach((check) => {
+      results.push(check.checkFunction(this))
+    })
+
+    return await Promise.all(results)
+  }
+
+  getMetadata (page) {
+    const $ = this.cheerio.load(page)
+    const metadata = {}
+
+    for (let i = 0; i < Object.keys(this._enabledMetadata); i++) {
+      const key = Object.keys(this._enabledMetadata)[i]
+      metadata[key] = this._enabledMetadata($)
+    }
+
+    return metadata
+  }
+
+  async start () {
+    try {
+      this.init()
+      let url = this._homepage
+      let page = await this.requestPage(url)
+      this._hub = await hub.getLocation(this._clientUrn, this._locationUrn)
+      this.crawled = url
+      this.getLinks(page)
+      this._metadata[url] = this.getMetadata(page)
+
+      if (this._beforeAudit.length > 0) {
+        const results = await this.runBeforeAudit(url, page)
+        this.results = { results, url }
+      }
+
+      if (this._audit.length > 0) {
+        const results = await this.runAudit(url, page)
+        this.results = { results, url }
+      }
+
+      while (this._pages.length > 0) {
+        url = this.nextPage()
+        page = await this.requestPage(url)
+        this.crawled = url
+        this.getLinks(page)
+        this.metadata[url] = this.getMetadata(page)
+        console.log(url)
+
+        if (!url.includes('blog')) {
+          const results = await this.runAudit(url, page)
+          this.results = { results, url }
+        } else {
+          console.log(`Skipped ${url}`)
+        }
+      }
+
+      if (this._afterAudit.length > 0) {
+        const results = await this.runAfterAudit()
+
+        for (let i = 0; i < results.length; i++) {
+          const audit = results[i]
+          const { name, pass, fail } = audit
+          this.afterAuditResults(pass, name, 'Passed', audit)
+          this.afterAuditResults(fail, name, 'Failed', audit)
+        }
+      }
+    } catch (err) {
+      console.error(err)
+      const status = err.message.substring(0, 3) === '404' ? 404 : err
+      this.errors = { url, status }
+    }
+  }
+
+  afterAuditResults (results, name, key, audit) {
+    for (let i = 0; i < Object.keys(results).length; i++) {
+      let pass
+      let fail
+      const url = Object.keys(results)[i]
+      if (key === 'pass') {
+        fail = []
+        pass = audit.pass[url]
+      } else {
+        fail = audit.fail[url]
+        pass = []
+      }
+      if (url === 'All Pages' && !this._results.hasOwnProperty('All Pages')) {
+        this._results['All Pages'] = []
+      }
+      if (url !== undefined) {
+        this._results[url].push({ name, fail, pass })
+      }
+    }
   }
 }

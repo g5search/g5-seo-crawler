@@ -36,7 +36,7 @@ function score (metadata) {
     let passing = true
     let reason = ''
 
-    if (h1 === null) {
+    if (h1 === null || h1 === undefined) {
       reason = compare(reason, 'Missing')
       passing = false
       fail[url] = [{ h1: '', reason }]

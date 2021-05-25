@@ -31,7 +31,7 @@ async function run (cheerio, page, url = null, audit) {
   const $ = cheerio.load(page)
   const pass = []
   const fail = []
-  const links = $('a:not(".number")').not($('.navigation-container a, .corporate-navigation a')).toArray()
+  const links = $('a:not(.number)').not($('.navigation-container a, .corporate-navigation a')).toArray()
   const linkChecks = []
 
   for (let i = 0; i < links.length; i++) {

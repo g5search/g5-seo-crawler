@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require('express')
 const app = express()
 const port = process.env.PORT || 8080
@@ -9,22 +10,12 @@ app.get('/', (req, res) => res.send('I\'m Listening.'))
 
 app.post('/', async (req, res) => {
   try {
-    // const {
-    //   url,
-    //   rootDomain,
-    //   singleDomain,
-    //   corporate,
-    //   clientUrn,
-    //   locationUrn,
-    //   sitemapUrl,
-    //   discoverLinks,
-    //   enabledAudits,
-    //   enabledMetadata,
-    //   config
-    // } = req.body
+    console.log(req.body)
     const audit = new Audit(req.body)
-    res.json(audit.results)
-    // res.send(200)
+    await audit.start()
+    console.log(audit.results)
+    // res.json(results)
+    res.sendStatus(200)
   } catch (err) {
     res.status(503).send(err)
   }

@@ -27,7 +27,7 @@ async function run (cheerio, page, url = null, audit) {
   const rootDomain = audit.rootDomain.substring(0, rootDomainLength)
   const $ = cheerio.load(page)
   const pass = [], fail = [], checks = []
-  const links = $('a:not(".number")').parent().not('.social-links, .footer-info, .housing-icons, .custom-links-3, .footer-info .nav, .social-feed').toArray()
+  const links = $('a:not(.number)').parent().not('.social-links, .footer-info, .housing-icons, .custom-links-3, .footer-info .nav, .social-feed').toArray()
   
   for (let i = 0; i < links.length; i++) {
     const a = links[i]

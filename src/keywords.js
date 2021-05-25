@@ -16,7 +16,7 @@ module.exports = class CheckKeywords {
    * @param {Object} audit
    * @memberof CheckKeywords
    */
-  constructor(audit) {
+  constructor (audit) {
     this.audit = audit
     this.name = audit.hub.location.name
     this.homePageUrl = audit.hub.location.home_page_url

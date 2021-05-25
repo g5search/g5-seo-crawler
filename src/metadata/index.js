@@ -8,8 +8,6 @@ fs
   .forEach((f) => {
     const filename = f.replace('.js', '')
     const audit = require(path.join(__dirname, f))
-    const { name } = audit.getDetails()
-    console.log(`Loaded ${name} Metadata.`)
     metadata[filename] = audit
   })
 
