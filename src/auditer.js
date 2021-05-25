@@ -37,7 +37,6 @@ module.exports = class Auditer extends Crawler {
   get hooks () { return this._hooks }
 
   set results ({ results, url }) {
-    console.log({ url, results })
     this._results[url] = results
   }
   get results () {

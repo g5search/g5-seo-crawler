@@ -10,12 +10,11 @@ app.get('/', (req, res) => res.send('I\'m Listening.'))
 
 app.post('/', async (req, res) => {
   try {
-    console.log(req.body)
+    const { clientUrn, locationUrn } = req.body
+    console.log(clientUrn, locationUrn)
     const audit = new Audit(req.body)
     await audit.start()
-    console.log(audit.results)
-    // res.json(results)
-    res.sendStatus(200)
+    res.json(audit.results)
   } catch (err) {
     res.status(503).send(err)
   }
