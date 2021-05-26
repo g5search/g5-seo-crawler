@@ -115,7 +115,7 @@ async function get_link_status (text, link) {
 function parseWidgetConfig (widget, configVarName, $) {
   let script = $(widget).find('script:not(.config)')[0].childNodes[0].data
   script = script.split(`var ${configVarName} =`)[1]
-  script = script.split("var")[0].trim()
+  script = script.split('var')[0].trim()
   script = script.replace()
   script = script.replace(/'/g, '"');
   script = script.replace(/^\s*([^":]+):/mg, match => `"${match.replace(":", '').trim()}":`)
