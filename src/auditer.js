@@ -186,7 +186,7 @@ module.exports = class Auditer extends Crawler {
       if (url === 'All Pages' && !this._results.hasOwnProperty('All Pages')) {
         this._results['All Pages'] = []
       }
-      if (url !== undefined) {
+      if (url !== undefined && this._results[url]) {
         this._results[url].push({ name, fail, pass })
       }
     }
