@@ -49,21 +49,32 @@ async function getClient (clientUrn) {
 }
 
 async function getSitemapType (locationUrn, clientUrn) {
-  const { token } = await getAuthToken()
-  const url = `${HUB_URL}/clients/${clientUrn}.json?access_token=${token.access_token}`
-  const hubData = await axios.get(url).then(res => res.data)
-  const { locations, domain, domain_type, vertical } = hubData.client
-  const { home_page_url } = locations.filter(location => location.urn === locationUrn)[0]
-  let rootDomain = home_page_url
-
-  if (domain_type === 'SingleDomainClient') {
-    rootDomain = domain
-  }
-
-  return {
-    domain_type,
-    rootDomain,
-    vertical,
-    home_page_url
+  try {
+    const { token } = await getAuthToken()
+    const url = `${HUB_URL}/clients/${clientUrn}.json?access_token=${token.access_token}`
+    const hubData = await axios.get(url).then(res => res.data)
+    const { locations, domain, domain_type, vertical } = hubData.client
+    const location = locations.find(l => l.urn === locationUrn)
+    if (!location) {
+      throw new Error(`Location URN, ${locationUrn}, was not found.`)
+    }
+    if (location.status === 'Deleted') {
+      throw new Error('Location has been deleted.')
+    }
+    const { home_page_url } = locations.filter(location => location.urn === locationUrn)[0]
+    let rootDomain = home_page_url
+  
+    if (domain_type === 'SingleDomainClient') {
+      rootDomain = domain
+    }
+  
+    return {
+      domain_type,
+      rootDomain,
+      vertical,
+      home_page_url
+    }
+  } catch (error) {
+    throw error
   }
 }
