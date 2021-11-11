@@ -117,78 +117,67 @@ module.exports = class Auditer extends Crawler {
   }
 
   async start () {
-    try {
-      await this.getSitemap()
-      this.init()
-      this.hub = await hub.getLocation(this._clientUrn, this._locationUrn)
-      await this.getSiteSettings(this._clientUrn, this._locationUrn)
-      let url = this._homepage
-      let page = await this.requestPage(url)
+    await this.getSitemap()
+    this.init()
+    this.hub = await hub.getLocation(this._clientUrn, this._locationUrn)
+    await this.getSiteSettings(this._clientUrn, this._locationUrn)
+    let url = this._homepage
+    let page = await this.requestPage(url)
+    this.crawled = url
+    this.getLinks(page)
+    this._metadata[url] = this.getMetadata(page)
+
+    if (this._beforeAudit.length > 0) {
+      const results = await this.runBeforeAudit(url, page)
+      this.results = { results, url }
+    }
+
+    if (this._audit.length > 0) {
+      const results = await this.runAudit(url, page)
+      this.results = { results, url }
+    }
+
+    while (this._pages.length > 0) {
+      url = this.nextPage()
+      page = await this.requestPage(url)
       this.crawled = url
       this.getLinks(page)
       this._metadata[url] = this.getMetadata(page)
+      console.log(url)
 
-      if (this._beforeAudit.length > 0) {
-        const results = await this.runBeforeAudit(url, page)
-        this.results = { results, url }
-      }
-
-      if (this._audit.length > 0) {
+      if (!url.includes('blog')) {
         const results = await this.runAudit(url, page)
         this.results = { results, url }
+      } else {
+        console.log(`Skipped ${url}`)
       }
+    }
 
-      while (this._pages.length > 0) {
-        url = this.nextPage()
-        page = await this.requestPage(url)
-        this.crawled = url
-        this.getLinks(page)
-        this._metadata[url] = this.getMetadata(page)
-        console.log(url)
+    if (this._afterAudit.length > 0) {
+      const results = await this.runAfterAudit()
 
-        if (!url.includes('blog')) {
-          const results = await this.runAudit(url, page)
-          this.results = { results, url }
-        } else {
-          console.log(`Skipped ${url}`)
-        }
-      }
-
-      if (this._afterAudit.length > 0) {
-        const results = await this.runAfterAudit()
-
-        for (let i = 0; i < results.length; i++) {
-          const audit = results[i]
-          const { name, pass, fail } = audit
-          this.afterAuditResults(pass, name, 'pass', audit)
-          this.afterAuditResults(fail, name, 'fail', audit)
-        }
-      }
-    } catch (err) {
-      console.error(err)
-      const status = err.message.substring(0, 3) === '404' ? 404 : err
-      this.errors = { url, status }
+      results.forEach(({ name, pass, fail }) => {
+        this.afterAuditResults(pass, name, 'pass', audit)
+        this.afterAuditResults(fail, name, 'fail', audit)
+      })
     }
   }
 
   afterAuditResults (results, name, key, audit) {
-    for (let i = 0; i < Object.keys(results).length; i++) {
-      let pass
-      let fail
-      const url = Object.keys(results)[i]
-      if (key === 'pass') {
-        fail = []
-        pass = audit.pass[url]
-      } else {
-        fail = audit.fail[url]
-        pass = []
-      }
-      if (url === 'All Pages' && !this._results.hasOwnProperty('All Pages')) {
-        this._results['All Pages'] = []
-      }
-      if (url !== undefined && this._results[url]) {
-        this._results[url].push({ name, fail, pass })
-      }
+    Object.keys(results).forEach((url) => {
+      const isPassing = key === 'pass'
+      const pass = isPassing ? audit.pass[url] : []
+      const fail = !isPassing ? audit.fail[url] : []
+      this.addResults(url, name, pass, fail)
+    })
+  }
+
+  addResults (url, name, pass, fail) {
+    if (url === 'All Pages' && !(url in this._results)) {
+      this._results['All Pages'] = []
+    }
+    if (url !== undefined && this._results[url]) {
+      this._results[url].push({ name, fail, pass })
     }
   }
 }

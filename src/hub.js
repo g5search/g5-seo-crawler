@@ -44,21 +44,36 @@ async function getLocation (clientUrn, locationUrn) {
 async function getClient (clientUrn) {
   const { token } = await getAuthToken()
   const url = `${HUB_URL}/clients/${clientUrn}.json?access_token=${token.access_token}`
-  const client = await axios.get(url).then(res => res.data)
+  const client = await axios.get(url)
+    .then(res => res.data)
+    .catch((err) => {
+      const msg = `Failed fetching hub client data at getClient: (message: ${err.message})`
+      throw new Error(msg)
+    })
   return client
 }
 
-async function getSitemapType (locationUrn, clientUrn) {
-  const { token } = await getAuthToken()
-  const url = `${HUB_URL}/clients/${clientUrn}.json?access_token=${token.access_token}`
-  const hubData = await axios.get(url).then(res => res.data)
-  const { locations, domain, domain_type, vertical } = hubData.client
-  const { home_page_url } = locations.filter(location => location.urn === locationUrn)[0]
-  let rootDomain = home_page_url
+function validLocation (location) {
+  return location && location.home_page_url && location.status === 'Live'
+}
 
-  if (domain_type === 'SingleDomainClient') {
-    rootDomain = domain
+function getLocationHomePageUrl (locations, clientUrn, locationUrn) {
+  const matchingLocation = locations.find(location => location.urn === locationUrn)
+  const locationIsValid = validLocation(matchingLocation)
+  if (!locationIsValid) {
+    const msg = `Location is invalid for auditing, must be Live and have a homepageurl
+    (Hub Link: ${HUB_URL}/admin/clients/${clientUrn}/locations/${locationUrn})`
+    throw new Error(msg)
   }
+  return matchingLocation.home_page_url
+}
+
+async function getSitemapType (locationUrn, clientUrn) {
+  const { client } = await getClient(clientUrn)
+  const { locations, domain, domain_type, vertical } = client
+  const home_page_url = getLocationHomePageUrl(locations, clientUrn, locationUrn)
+  const rootDomain = domain_type === 'SingleDomainClient'
+    ? domain : home_page_url
 
   return {
     domain_type,
