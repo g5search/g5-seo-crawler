@@ -150,7 +150,8 @@ module.exports = class Crawler {
   }
 
   requestPage (url) {
-    return this.axios.get(url).then(res => res.data)
+    return this.axios.get(url)
+      .then(res => res.data)
   }
 
   nextPage () {

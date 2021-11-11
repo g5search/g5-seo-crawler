@@ -46,8 +46,11 @@ async function run (audit) {
 
   for (let i = 0; i < dedupe.length; i++) {
     const link = dedupe[i]
-    if (link.link[0] === '/') {
-      link.link = `${rootDomain}${link.link}`
+    const path = link.link
+    const linkNeedsRootDomain = !path.includes(rootDomain)
+    if (linkNeedsRootDomain) {
+      const needsSlash = path[0] !== '/'
+      link.link = `${rootDomain}${needsSlash ? '/' : ''}${path}`
     }
     const linkCheck = await get_anchor_status(link)
     if (passingStatuses.includes(linkCheck.status)) {
