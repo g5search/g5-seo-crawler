@@ -162,7 +162,6 @@ module.exports = class Crawler {
     if (this.locationUrn) {
       const sitemapType = await hub.getSitemapType(this.locationUrn, this.clientUrn)
 
-      console.log({ sitemapType })
       if (sitemapType && sitemapType.home_page_url) {
         this.homepage = sitemapType.home_page_url
       }
