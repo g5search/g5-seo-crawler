@@ -3,11 +3,20 @@
   "version": "1.0.0",
   "description": "Analyzes websites for SEO markup",
   "main": "src/index.js",
+  "config": {
+    "imageRepo": "gcr.io/g5-images/seo-audit",
+    "imageName": "seo-audit"
+  },
   "scripts": {
     "start": "node ./src/index.js",
     "dev": "nodemon ./src/index.js --watch",
-    "docker:build": "docker build -t seo .",
-    "test": "jest"
+    "docker:build": "docker build -t $npm_package_config_imageName .",
+    "docker:run": "docker run -p 8085:8085 $npm_package_config_imageName",
+    "test": "jest",
+    "docker:tag:staging": "branch=$(git rev-parse --symbolic-full-name --abbrev-ref HEAD); sha=$(git rev-parse $branch); docker tag $npm_package_config_imageName $npm_package_config_imageRepo:$branch",
+    "docker:tag:prod": "docker tag $npm_package_config_imageName $npm_package_config_imageRepo:$npm_package_version",
+    "docker:push:prod": "docker push $npm_package_config_imageRepo:$npm_package_version",
+    "docker:push:staging": "branch=$(git rev-parse --symbolic-full-name --abbrev-ref HEAD); sha=$(git rev-parse $branch); docker push $npm_package_config_imageRepo:$branch"
   },
   "repository": {
     "type": "git",
