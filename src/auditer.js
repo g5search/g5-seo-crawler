@@ -151,10 +151,12 @@ module.exports = class Auditer extends Crawler {
     while (this._pages.length > 0) {
       url = this.nextPage()
       page = await this.requestPage(url)
-      this.crawled = url
-      this.getLinks(page)
-      this._metadata[url] = this.getMetadata(page)
-      console.log(url)
+      if (page !== 'Failed') {
+        this.crawled = url
+        this.getLinks(page)
+        this._metadata[url] = this.getMetadata(page)
+        console.log(url)
+      }
 
       if (!url.includes('blog')) {
         const results = await this.runAudit(url, page)
