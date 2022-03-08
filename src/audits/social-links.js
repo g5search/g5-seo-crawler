@@ -63,9 +63,10 @@ async function run (audit) {
 
 async function getAnchorStatus (anchor) {
   const { link, text, className } = anchor
-  const { status } = await axios
+  const res = await axios
     .get(link, { maxRedirects: 7 })
-    .catch(error => error.response)
+    .catch(error => { const status = error.response; return { status } })
+  const status = res.status
   let reason = ''
   if (status === 301) {
     reason = 'Off-Page Link Redirect'
