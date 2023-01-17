@@ -20,13 +20,6 @@ const credentials = {
 const { ClientCredentials } = require('simple-oauth2')
 const oAuth2 = new ClientCredentials(credentials)
 
-module.exports = {
-  getLocation,
-  getClient,
-  getSitemapType,
-  getAuthToken
-}
-
 /**
  * Get bearer token for CMS endpoints
  * @returns token and expiration
@@ -83,3 +76,10 @@ const getSitemapType = loggerFuncWrapperAsync('getSitemapType', async (locationU
     home_page_url
   }
 })
+
+module.exports = {
+  getLocation,
+  getClient,
+  getSitemapType,
+  getAuthToken
+}
