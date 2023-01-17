@@ -1,5 +1,5 @@
 const axios = require('axios')
-const logger = require('./utilities/logger')
+const { loggerFuncWrapperAsync } = require('./utilities/logger-func-wrapper')
 
 const {
   G5_AUTH_CLIENT_ID,
@@ -31,27 +31,18 @@ module.exports = {
  * Get bearer token for CMS endpoints
  * @returns token and expiration
  */
-async function getAuthToken () {
-  logger.info('getAuthToken started!')
+const getAuthToken = loggerFuncWrapperAsync('getAuthToken', () => {
+  return oAuth2.getToken()
+})
 
-  try {
-    return oAuth2.getToken()
-  } catch (error) {
-    const errorMessage = `Failed fetching TOKEN at getAuthToken: (message: ${error.message})`
-
-    logger.error(errorMessage)
-    throw new Error(errorMessage)
-  }
-}
-
-async function getLocation (clientUrn, locationUrn) {
+const getLocation = loggerFuncWrapperAsync('getLocation', async (clientUrn, locationUrn) => {
   const { token } = await getAuthToken()
   const url = `${HUB_URL}/clients/${clientUrn}/locations/${locationUrn}.json?access_token=${token.access_token}`
   const location = await axios.get(url).then(res => res.data)
   return location
-}
+})
 
-async function getClient (clientUrn) {
+const getClient = loggerFuncWrapperAsync('getClient', async (clientUrn) => {
   const { token } = await getAuthToken()
   const url = `${HUB_URL}/clients/${clientUrn}.json?access_token=${token.access_token}`
   const client = await axios.get(url)
@@ -61,13 +52,13 @@ async function getClient (clientUrn) {
       throw new Error(msg)
     })
   return client
-}
+})
 
-function validLocation (location) {
+const validLocation = (location) => {
   return location && location.home_page_url && location.status === 'Live'
 }
 
-function getLocationHomePageUrl (locations, clientUrn, locationUrn) {
+const getLocationHomePageUrl = (locations, clientUrn, locationUrn) => {
   const matchingLocation = locations.find(location => location.urn === locationUrn)
   const locationIsValid = validLocation(matchingLocation)
   if (!locationIsValid) {
@@ -78,7 +69,7 @@ function getLocationHomePageUrl (locations, clientUrn, locationUrn) {
   return matchingLocation.home_page_url
 }
 
-async function getSitemapType (locationUrn, clientUrn) {
+const getSitemapType = loggerFuncWrapperAsync('getSitemapType', async (locationUrn, clientUrn) => {
   const { client } = await getClient(clientUrn)
   const { locations, domain, domain_type, vertical } = client
   const home_page_url = getLocationHomePageUrl(locations, clientUrn, locationUrn)
@@ -91,4 +82,4 @@ async function getSitemapType (locationUrn, clientUrn) {
     vertical,
     home_page_url
   }
-}
+})
