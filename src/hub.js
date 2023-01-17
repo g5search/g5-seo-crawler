@@ -1,4 +1,5 @@
 const axios = require('axios')
+const logger = require('./utilities/logger')
 
 const {
   G5_AUTH_CLIENT_ID,
@@ -30,8 +31,17 @@ module.exports = {
  * Get bearer token for CMS endpoints
  * @returns token and expiration
  */
-function getAuthToken () {
-  return oAuth2.getToken()
+async function getAuthToken () {
+  logger.info('getAuthToken started!')
+
+  try {
+    return oAuth2.getToken()
+  } catch (error) {
+    const errorMessage = `Failed fetching TOKEN at getAuthToken: (message: ${error.message})`
+
+    logger.error(errorMessage)
+    throw new Error(errorMessage)
+  }
 }
 
 async function getLocation (clientUrn, locationUrn) {

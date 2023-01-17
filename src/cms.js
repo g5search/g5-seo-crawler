@@ -1,5 +1,6 @@
 const axios = require('axios')
 const { getAuthToken } = require('./hub')
+const logger = require('./utilities/logger')
 
 module.exports = {
   getClw,
@@ -24,6 +25,8 @@ function getClw (locationUrn, websites) {
 }
 
 async function getWebsites (clientUrn) {
+  logger.info('getWebsites started!')
+
   const { token } = await getAuthToken()
   const url = createGetWebsitesUrl(clientUrn, token)
 
@@ -32,9 +35,10 @@ async function getWebsites (clientUrn) {
 
     return data
   } catch (error) {
-    const msg = `Failed fetching CMS websites data at getWebsites: (message: ${error.message})`
+    const errorMessage = `Failed fetching CMS websites data at getWebsites: (message: ${error.message})`
 
-    throw new Error(msg)
+    logger.error(errorMessage)
+    throw new Error(errorMessage)
   }
 }
 
