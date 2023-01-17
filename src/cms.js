@@ -3,9 +3,6 @@ const { getAuthToken } = require('./hub')
 const { loggerFuncWrapperAsync } = require('./utilities/logger-func-wrapper')
 
 module.exports = {
-  getClw,
-  getCmsUrl,
-  getWebsites,
   getSitemapUrl
 }
 
