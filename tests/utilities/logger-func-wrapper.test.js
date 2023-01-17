@@ -37,13 +37,13 @@ describe('Logger Func Wrapper', () => {
         const fun = loggerFuncWrapper('myInvalidFunction', invalidFunc)
 
         try {
-          fun()
+          fun('foo', 123)
         } catch {}
 
         expect(logger.error).toBeCalledTimes(1)
         expect(logger.error).toBeCalledWith(
           '"myInvalidFunction" threw an error! (Error message: Something went wrong)',
-          { error }
+          { error, params: ['foo', 123] }
         )
       })
 
@@ -71,6 +71,38 @@ describe('Logger Func Wrapper', () => {
         const result = func('Felipe', 'Nolleto')
 
         expect(result).toBe('Felipe Nolleto')
+      })
+    })
+
+    describe('with nested errors', () => {
+      const error = new Error('My error')
+      const func3 = loggerFuncWrapper('func3', () => { throw error })
+      const func2 = loggerFuncWrapper('func2', () => { func3(); })
+      const func1 = loggerFuncWrapper('func1', () => { func2(); })
+      const main = loggerFuncWrapper('main', () => { func1(); })
+
+      it('logs detailed error only for the the function that throw ("func3")', () => {
+        try {
+          main()
+        } catch {}
+
+        expect(logger.error).toBeCalledTimes(4)
+        expect(logger.error).toHaveBeenNthCalledWith(1,
+          '"func3" threw an error! (Error message: My error)', { error, params: [] }
+        )
+        expect(logger.error).toHaveBeenNthCalledWith(2,
+          '"func2" threw an error due to "func3". (Check "func3" error for more info)',
+        )
+        expect(logger.error).toHaveBeenNthCalledWith(3,
+          '"func1" threw an error due to "func2". (Check "func2" error for more info)',
+        )
+        expect(logger.error).toHaveBeenNthCalledWith(4,
+          '"main" threw an error due to "func1". (Check "func1" error for more info)',
+        )
+      })
+
+      it('throws an error without too much details', () => {
+        expect(main).toThrow('"main" threw an error due to "func1". (Check "func1" error for more info)')
       })
     })
   })
@@ -110,13 +142,13 @@ describe('Logger Func Wrapper', () => {
         const fun = loggerFuncWrapperAsync('myInvalidFunction', invalidFunc)
 
         try {
-          await fun()
+          await fun(123, 'test')
         } catch {}
 
         expect(logger.error).toBeCalledTimes(1)
         expect(logger.error).toBeCalledWith(
           '"myInvalidFunction" threw an error! (Error message: Something went wrong)',
-          { error }
+          { error, params: [123, 'test'] }
         )
       })
 
@@ -146,6 +178,43 @@ describe('Logger Func Wrapper', () => {
         const result = await func('Felipe', 'Nolleto')
 
         expect(result).toBe('Felipe Nolleto')
+      })
+    })
+
+    describe('with nested errors', () => {
+      const error = new Error('My error')
+      const func3 = loggerFuncWrapperAsync('func3', async () => {
+        await sleep(1)
+        throw error
+      })
+      const func2 = loggerFuncWrapperAsync('func2', async () => { await func3(); })
+      const func1 = loggerFuncWrapperAsync('func1', async () => { await func2(); })
+      const main = loggerFuncWrapperAsync('main', async () => { await func1(); })
+
+      it('logs detailed error only for the the function that throw ("func3")', async () => {
+        try {
+          await main()
+        } catch {}
+
+        expect(logger.error).toBeCalledTimes(4)
+        expect(logger.error).toHaveBeenNthCalledWith(1,
+          '"func3" threw an error! (Error message: My error)', { error, params: [] }
+        )
+        expect(logger.error).toHaveBeenNthCalledWith(2,
+          '"func2" threw an error due to "func3". (Check "func3" error for more info)',
+        )
+        expect(logger.error).toHaveBeenNthCalledWith(3,
+          '"func1" threw an error due to "func2". (Check "func2" error for more info)',
+        )
+        expect(logger.error).toHaveBeenNthCalledWith(4,
+          '"main" threw an error due to "func1". (Check "func1" error for more info)',
+        )
+      })
+
+      it('throws an error without too much details', async () => {
+        await expect(main)
+          .rejects
+          .toThrow('"main" threw an error due to "func1". (Check "func1" error for more info)')
       })
     })
   })
