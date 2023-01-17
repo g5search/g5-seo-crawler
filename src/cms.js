@@ -1,6 +1,6 @@
 const axios = require('axios')
 const { getAuthToken } = require('./hub')
-const logger = require('./utilities/logger')
+const { loggerFuncWrapperAsync } = require('./utilities/logger-func-wrapper')
 
 module.exports = {
   getClw,
@@ -9,14 +9,14 @@ module.exports = {
   getSitemapUrl
 }
 
-async function getSitemapUrl (locationUrn, clientUrn, domain) {
+const getSitemapUrl = loggerFuncWrapperAsync('getSitemapUrl', async (locationUrn, clientUrn, domain) => {
   const websites = await getWebsites(clientUrn)
   const clw = getClw(locationUrn, websites.websites)
 
   return `${domain}/${clw}-sitemap.xml`
-}
+})
 
-function getClw (locationUrn, websites) {
+const getClw = (locationUrn, websites) => {
   const clw = websites
     .filter(w => w.location_urn === locationUrn)
     .filter(w => w.is_production)
@@ -24,29 +24,19 @@ function getClw (locationUrn, websites) {
   return clw[0].urn
 }
 
-async function getWebsites (clientUrn) {
-  logger.info('getWebsites started!')
-
+const getWebsites = getSitemapUrl('getWebsites', async (clientUrn) => {
   const { token } = await getAuthToken()
   const url = createGetWebsitesUrl(clientUrn, token)
+  const { data } = await axios.get(url)
 
-  try {
-    const { data } = await axios.get(url)
+  return data
+})
 
-    return data
-  } catch (error) {
-    const errorMessage = `Failed fetching CMS websites data at getWebsites: (message: ${error.message})`
-
-    logger.error(errorMessage)
-    throw new Error(errorMessage)
-  }
-}
-
-function getCmsUrl (urn) {
+const getCmsUrl = (urn) => {
   return `${process.env.CMS_URL}/api/clients/${urn}`
 }
 
-function createGetWebsitesUrl (clientUrn, token) {
+const createGetWebsitesUrl = (clientUrn, token) => {
   const cmsUrl = getCmsUrl(clientUrn)
 
   return `${cmsUrl}/websites?access_token=${token.access_token}`
