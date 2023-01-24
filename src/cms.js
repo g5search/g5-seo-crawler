@@ -23,7 +23,9 @@ const createGetWebsitesUrl = (clientUrn, token) => {
 const getWebsites = loggerFuncWrapperAsync('getWebsites', async (clientUrn) => {
   const { token } = await getAuthToken()
   const url = createGetWebsitesUrl(clientUrn, token)
-  const { data } = await axios.get(url)
+  const { data } = await axios.get(url, {
+    headers: { 'Legacy-Auth': true }
+  })
 
   return data
 })
