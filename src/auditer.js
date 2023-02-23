@@ -4,12 +4,23 @@ const metadata = require('./metadata')
 const hub = require('./hub')
 const domain = require('./utilities/domain')
 
+const fallbackAudits = {
+  "alt-text": true,
+  "external-links": true,
+  "h1": true,
+  "internal-links": true,
+  "inventory-links": false,
+  "keywords": false,
+  "nav": false,
+  "social-links": true,
+  "title-tags": true
+}
 module.exports = class Auditer extends Crawler {
   constructor (params) {
     super(params)
     this._config = params.config
     this._audits = audits
-    this._enabledAudits = params.enabledAudits
+    this._enabledAudits = params.enabledAudits ? params.enabledAudits : fallbackAudits
     this._metadata = {}
     this._enabledMetadata = metadata
     this._hub = {}
@@ -140,10 +151,12 @@ module.exports = class Auditer extends Crawler {
     while (this._pages.length > 0) {
       url = this.nextPage()
       page = await this.requestPage(url)
-      this.crawled = url
-      this.getLinks(page)
-      this._metadata[url] = this.getMetadata(page)
-      console.log(url)
+      if (page !== 'Failed') {
+        this.crawled = url
+        this.getLinks(page)
+        this._metadata[url] = this.getMetadata(page)
+        console.log(url)
+      }
 
       if (!url.includes('blog')) {
         const results = await this.runAudit(url, page)
@@ -156,9 +169,9 @@ module.exports = class Auditer extends Crawler {
     if (this._afterAudit.length > 0) {
       const results = await this.runAfterAudit()
 
-      results.forEach(({ name, pass, fail }) => {
-        this.afterAuditResults(pass, name, 'pass', audit)
-        this.afterAuditResults(fail, name, 'fail', audit)
+      results.forEach(({ name, pass, fail }, i, audit) => {
+        this.afterAuditResults(pass, name, 'pass', audit[i])
+        this.afterAuditResults(fail, name, 'fail', audit[i])
       })
     }
   }
