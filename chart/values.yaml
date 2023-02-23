@@ -1,0 +1,300 @@
+global: 
+  applicationName: seo-audit
+  region: us-central1
+node-web-service:
+  disableHealthChecking: true
+  database:
+    enabled: true
+  cache:
+    enabled: true
+    readReplicasMode: "READ_REPLICAS_DISABLED"
+  cloud-sql:
+    databaseVersion: POSTGRES_11
+  image:
+    name: "gcr.io/g5-images/onboarder"
+  isInternetFacing: true
+  hasMetrics: false
+  auth0:
+    client:
+      create: true
+      localhostPorts:
+        - 3000
+        - 3001
+        - 3002
+  replicaCount: 2
+  revisionHistoryLimit: 1
+  resources:
+    requests:
+      cpu: 200m
+      memory: 300Mi
+  configurations:
+    production:
+      configMapData:
+        G5_AUTH_REDIRECT_URI: https://onboarder.g5marketingcloud.com/g5_auth/users/auth/g5/callback
+        TOKEN_HOST: https://auth.g5search.com
+        BASE_URL: https://onboarder.g5marketingcloud.com
+        HUB_URL: https://hub.g5marketingcloud.com
+        G5_HUB_UPDATABLE_URL: https://hub.g5marketingcloud.com
+        DISABLE_SF_ID_PUSH: 'false'
+        ASSET_SCRAPER_URL: https://asset-scraper-wm2pulnlgq-uc.a.run.app
+        SCOUT_MONITOR: 'true'
+        SCOUT_PROJECT_NAME: 'Onboarder (production)'
+        MAINTENANCE_MODE: 'true'
+        G5_EMAILS_URL: https://emails.g5marketingcloud.com
+        RELEASE_LOCATION_TEMPLATE_URN: 'onboarder-customer-submit'
+        SF_LOGIN_URL: ""
+    prime:
+      configMapData:
+        AUTH0_CALLBACK_URL: https://onboarder-opex-prime.g5devops.com/users/auth/auth0/callback
+        TOKEN_HOST: https://auth.g5search.com
+        HUB_URL: https://hub.g5marketingcloud.com
+        G5_HUB_UPDATABLE_URL: https://hub.g5marketingcloud.com
+        DISABLE_SF_ID_PUSH: 'true'
+        BASE_URL: https://onboarder-opex-prime.g5devops.com
+        BROWSER_URL: "onboarder-opex-prime.g5devops.com"
+        ASSET_SCRAPER_URL: https://unauth-asset-enwgt7akpq-uw.a.run.app
+        SCOUT_MONITOR: 'true'
+        SCOUT_PROJECT_NAME: 'Onboarder (opex-prime)'
+        MAINTENANCE_MODE: 'true'
+        G5_EMAILS_URL: https://emails.g5marketingcloud.com
+        RELEASE_LOCATION_TEMPLATE_URN: 'onboarder-customer-submit'
+        SF_LOGIN_URL: ""
+    asm-testing:
+      configMapData:
+        AUTH0_CALLBACK_URL: https://onboarder-asm-testing-staging.g5devops.com/users/auth/auth0/callback
+        TOKEN_HOST: https://auth-platform-staging.g5devops.com
+        HUB_URL: https://hub-content-staging.g5devops.com
+        G5_HUB_UPDATABLE_URL: https://hub-content-staging.g5devops.com
+        DISABLE_SF_ID_PUSH: 'true'
+        BASE_URL: https://onboarder-asm-testing-staging.g5devops.com
+        BROWSER_URL: "onboarder-asm-testing-staging.g5devops.com"
+        ASSET_SCRAPER_URL: https://asset-scraper-zy6s3is4aq-uc.a.run.app
+        SCOUT_MONITOR: 'true'
+        SCOUT_PROJECT_NAME: 'Onboarder (opex-staging)'
+        MAINTENANCE_MODE: 'true'
+        G5_EMAILS_URL: https://emails-analytics-staging.g5devops.com
+        RELEASE_LOCATION_TEMPLATE_URN: 'onboarder-customer-submit'
+        SF_LOGIN_URL: https://test.salesforce.com
+    staging:
+      configMapData:
+        AUTH0_CALLBACK_URL: https://onboarder-opex-staging.g5devops.com/users/auth/auth0/callback
+        TOKEN_HOST: https://auth-platform-staging.g5devops.com
+        HUB_URL: https://hub-content-staging.g5devops.com
+        G5_HUB_UPDATABLE_URL: https://hub-content-staging.g5devops.com
+        DISABLE_SF_ID_PUSH: 'true'
+        BASE_URL: https://onboarder-opex-staging.g5devops.com
+        ASSET_SCRAPER_URL: https://asset-scraper-zy6s3is4aq-uc.a.run.app
+        SCOUT_MONITOR: 'true'
+        SCOUT_PROJECT_NAME: 'Onboarder (opex-staging)'
+        MAINTENANCE_MODE: 'true'
+        G5_EMAILS_URL: https://emails-analytics-staging.g5devops.com
+        RELEASE_LOCATION_TEMPLATE_URN: 'onboarder-customer-submit'
+        SF_LOGIN_URL: https://test.salesforce.com
+  env:
+    - name: SESSION_SECRET 
+      valueFrom:
+        secretKeyRef:
+          name: onboarder
+          key: SESSION_SECRET
+    - name: MAINTENANCE_MODE
+      value: "false"
+    - name: SCOUT_PROJECT_NAME
+      valueFrom: 
+        configMapKeyRef:
+          name: onboarder
+          key: SCOUT_PROJECT_NAME
+    - name: G5_AUTH_API_CLIENT_ID
+      valueFrom: 
+        secretKeyRef:
+          name: onboarder
+          key: G5_AUTH_API_CLIENT_ID
+    - name: G5_AUTH_API_REDIRECT_URI
+      valueFrom: 
+        secretKeyRef:
+          name: onboarder
+          key: G5_AUTH_API_REDIRECT_URI
+    - name: G5_AUTH_API_CLIENT_SECRET
+      valueFrom: 
+        secretKeyRef:
+          name: onboarder
+          key: G5_AUTH_API_CLIENT_SECRET
+    - name: AUTH0_AUDIENCE
+      value: onboarder
+    - name: AUTH0_DOMAIN
+      valueFrom:
+        configMapKeyRef:
+          name: environment-info
+          key: auth0_tenant_domain
+    - name: AUTH0_CLIENT_ID
+      valueFrom:
+        secretKeyRef:
+          name: onboarder-auth0-client
+          key: client-id
+    - name: AUTH0_CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: onboarder-auth0-client
+          key: client-secret
+    - name: COOKIE_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: onboarder-auth0-client
+          key: cookie-secret
+    - name: HONEYBADGER_API_KEY
+      valueFrom: 
+        secretKeyRef:
+          name: onboarder
+          key: HONEYBADGER_API_KEY 
+    - name: SCOUT_API_KEY
+      valueFrom: 
+        secretKeyRef:
+          name: onboarder
+          key: SCOUT_API_KEY 
+    - name: SCOUT_MONITOR
+      valueFrom: 
+        configMapKeyRef:
+          name: onboarder
+          key: SCOUT_MONITOR
+    - name: TOKEN_HOST
+      valueFrom:
+        configMapKeyRef:
+          name: onboarder
+          key: TOKEN_HOST
+    - name: RELEASE_LOCATION_TEMPLATE_URN
+      valueFrom:
+        configMapKeyRef:
+          name: onboarder
+          key: RELEASE_LOCATION_TEMPLATE_URN
+    - name: G5_EMAILS_URL
+      valueFrom:
+        configMapKeyRef:
+          name: onboarder
+          key: G5_EMAILS_URL
+    - name: HUB_URL
+      valueFrom:
+        configMapKeyRef:
+          name: onboarder
+          key: HUB_URL
+    - name: G5_HUB_UPDATABLE_URL
+      valueFrom:
+        configMapKeyRef:
+          name: onboarder
+          key: G5_HUB_UPDATABLE_URL
+    - name: BASE_URL
+      valueFrom:
+        configMapKeyRef:
+          name: onboarder
+          key: BASE_URL
+    - name: DISABLE_SF_ID_PUSH
+      valueFrom:
+        configMapKeyRef:
+          name: onboarder
+          key: DISABLE_SF_ID_PUSH
+    - name: SF_LOGIN_URL
+      valueFrom:
+        configMapKeyRef:
+          name: onboarder
+          key: SF_LOGIN_URL 
+    - name: SF_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: onboarder
+          key: SF_PASSWORD 
+    - name: SF_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: onboarder
+          key: SF_USERNAME 
+    - name: SF_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: onboarder
+          key: SF_TOKEN
+    - name: G5_AUTH_CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: onboarder
+          key: G5_AUTH_CLIENT_SECRET 
+    - name: AUTH0_CALLBACK_URL
+      valueFrom:
+        configMapKeyRef:
+          name: onboarder
+          key: AUTH0_CALLBACK_URL
+    - name: JWT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: onboarder
+          key: JWT_SECRET
+    - name: MICROSOFT_TEAMS_ALERTS_URL
+      valueFrom:
+        secretKeyRef:
+          name: onboarder
+          key: MICROSOFT_TEAMS_ALERTS_URL
+    - name: ASSET_SCRAPER_URL
+      valueFrom:
+        configMapKeyRef:
+          name: onboarder
+          key: ASSET_SCRAPER_URL
+    - name: LINK_DISCOVERER_URL
+      value: "https://link-discover-wm2pulnlgq-uc.a.run.app"
+    - name : "EXCESSIVE_PAGE_LIMIT"
+      value: "25"
+    - name: GKE
+      value: "true"
+    - name: GA_PROPERTY
+      value: "G-MGKX826NCE"
+    - name: BROWSER_URL
+      valueFrom:
+        configMapKeyRef:
+          name: onboarder
+          key: BROWSER_URL
+    - name: DATABASE_MAX_CONNECTIONS
+      value: "50"
+    - name: DATABASE_MIN_CONNECTIONS
+      value: "0"
+    - name: DATABASE_DIALECT
+      value: postgres
+    - name: DATABASE_IDLE
+      value: "10000"
+    - name: DATABASE_AQUIRE
+      value: "10000"
+    - name: DATABASE_EVICT
+      value: "10000"
+    - name: DATABASE_PORT
+      value: "5432"
+    - name: DATABASE_SSL
+      value: "false"
+    - name: DATABASE_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: onboarder-a-sqluser-password 
+          key: password 
+    - name: DATABASE_URL
+      value: $(DATABASE_DIALECT)://$(DATABASE_USER):$(DATABASE_PASSWORD)@$(DATABASE_HOST):$(DATABASE_PORT)/$(DATABASE_NAME)
+    - name: CLOUDINARY_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: onboarder
+          key: CLOUDINARY_SECRET
+    - name: PLACES_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: onboarder
+          key: PLACES_API_KEY
+    - name: CLOUDINARY_KEY
+      valueFrom:
+        secretKeyRef:
+          name: onboarder
+          key: CLOUDINARY_KEY
+    - name: CLOUDINARY_NAME
+      valueFrom:
+        secretKeyRef:
+          name: onboarder
+          key: CLOUDINARY_NAME
+    - name: CLOUDINARY_TMP_PREFIX
+      valueFrom:
+        secretKeyRef:
+          name: onboarder
+          key: CLOUDINARY_TMP_PREFIX
+    - name: PORT
+      value : "8085"
