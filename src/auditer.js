@@ -156,9 +156,9 @@ module.exports = class Auditer extends Crawler {
     if (this._afterAudit.length > 0) {
       const results = await this.runAfterAudit()
 
-      results.forEach(({ name, pass, fail }) => {
-        this.afterAuditResults(pass, name, 'pass', audit)
-        this.afterAuditResults(fail, name, 'fail', audit)
+      results.forEach(({ name, pass, fail }, i, audit) => {
+        this.afterAuditResults(pass, name, 'pass', audit[i])
+        this.afterAuditResults(fail, name, 'fail', audit[i])
       })
     }
   }
