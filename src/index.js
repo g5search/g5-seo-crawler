@@ -16,6 +16,7 @@ app.post('/', async (req, res) => {
     await audit.start()
     res.json(audit.results)
   } catch (err) {
+    console.log({ err })
     const formatAxiosError = (err) => ({
       status: err.response.status,
       url: err.response.config.url,
