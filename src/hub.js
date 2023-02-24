@@ -57,21 +57,20 @@ function validLocation (location) {
   return location && location.home_page_url && location.status === 'Live'
 }
 
-function getLocationHomePageUrl (locations, clientUrn, locationUrn) {
+function getLocationHomePageUrl (locations, vertical, locationUrn) {
   const matchingLocation = locations.find(location => location.urn === locationUrn)
   const locationIsValid = validLocation(matchingLocation)
-  if (!locationIsValid) {
-    const msg = `Location is invalid for auditing, must be Live and have a homepageurl
-    (Hub Link: ${HUB_URL}/admin/clients/${clientUrn}/locations/${locationUrn})`
-    throw new Error(msg)
-  }
-  return matchingLocation.home_page_url
+  return !locationIsValid ? buildHomePage(matchingLocation, vertical) : matchingLocation.home_page_url
+}
+
+function buildHomePage (location, vertical) {
+  return `${location.domain}/${vertical.toLowerCase()}/${location.state.toLowerCase()}/${location.city.toLowerCase()}/${location.custom_slug}`
 }
 
 async function getSitemapType (locationUrn, clientUrn) {
   const { client } = await getClient(clientUrn)
   const { locations, domain, domain_type, vertical } = client
-  const home_page_url = getLocationHomePageUrl(locations, clientUrn, locationUrn)
+  const home_page_url = getLocationHomePageUrl(locations, vertical, locationUrn)
   const rootDomain = domain_type === 'SingleDomainClient'
     ? domain : home_page_url
 
