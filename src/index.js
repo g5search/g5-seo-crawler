@@ -14,8 +14,9 @@ app.post('/', async (req, res) => {
     console.log(clientUrn, locationUrn)
     const audit = new Audit(req.body)
     await audit.start()
-    console.log('***** Audit Results *****', audit.results)
-    res.json(audit.results)
+    const results = audit.results
+    console.log('***** Audit Results *****', JSON.stringify(results))
+    res.json(results)
   } catch (err) {
     console.log({ err })
     const formatAxiosError = (err) => ({
