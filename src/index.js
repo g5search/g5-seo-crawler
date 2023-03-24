@@ -10,15 +10,11 @@ app.get('/', (req, res) => res.send('I\'m Listening.'))
 
 app.post('/', async (req, res) => {
   try {
-    const { clientUrn, locationUrn } = req.body
-    console.log(clientUrn, locationUrn)
     const audit = new Audit(req.body)
     await audit.start()
     const results = audit.results
-    console.log('***** Audit Results *****', JSON.stringify(results))
     res.json(results)
   } catch (err) {
-    console.log({ err })
     const formatAxiosError = (err) => ({
       status: err.response.status,
       url: err.response.config.url,
