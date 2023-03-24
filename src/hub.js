@@ -1,4 +1,5 @@
 const axios = require('axios')
+const { loggerFuncWrapperAsync } = require('./utilities/logger-func-wrapper')
 
 const {
   G5_AUTH_CLIENT_ID,
@@ -19,60 +20,52 @@ const credentials = {
 const { ClientCredentials } = require('simple-oauth2')
 const oAuth2 = new ClientCredentials(credentials)
 
-module.exports = {
-  getLocation,
-  getClient,
-  getSitemapType,
-  getAuthToken
-}
-
 /**
  * Get bearer token for CMS endpoints
  * @returns token and expiration
  */
-function getAuthToken () {
+const getAuthToken = loggerFuncWrapperAsync('getAuthToken', () => {
   return oAuth2.getToken()
-}
+})
 
-async function getLocation (clientUrn, locationUrn) {
+const getLocation = loggerFuncWrapperAsync('getLocation', async (clientUrn, locationUrn) => {
   const { token } = await getAuthToken()
   const url = `${HUB_URL}/clients/${clientUrn}/locations/${locationUrn}.json?access_token=${token.access_token}`
-  const location = await axios.get(url).then(res => res.data)
-  return location
-}
+  const { data: location } = await axios.get(url)
 
-async function getClient (clientUrn) {
+  return location
+})
+
+const getClient = loggerFuncWrapperAsync('getClient', async (clientUrn) => {
   const { token } = await getAuthToken()
   const url = `${HUB_URL}/clients/${clientUrn}.json?access_token=${token.access_token}`
-  const client = await axios.get(url)
-    .then(res => res.data)
-    .catch((err) => {
-      const msg = `Failed fetching hub client data at getClient: (message: ${err.message})`
-      throw new Error(msg)
-    })
-  return client
-}
+  const { data: client } = await axios.get(url)
 
-function validLocation (location) {
+  return client
+})
+
+const validLocation = (location) => {
   return location && location.home_page_url && location.status === 'Live'
 }
 
-function getLocationHomePageUrl (locations, vertical, locationUrn) {
+const getLocationHomePageUrl = (locations, clientUrn, locationUrn) => {
   const matchingLocation = locations.find(location => location.urn === locationUrn)
   const locationIsValid = validLocation(matchingLocation)
-  return !locationIsValid ? buildHomePage(matchingLocation, vertical) : matchingLocation.home_page_url
+
+  if (!locationIsValid) {
+    const msg = `Location is invalid for auditing, must be Live and have a homepageurl
+    (Hub Link: ${HUB_URL}/admin/clients/${clientUrn}/locations/${locationUrn})`
+    throw new Error(msg)
+  }
+
+  return matchingLocation.home_page_url
 }
 
-function buildHomePage (location, vertical) {
-  return `${location.domain}/${vertical.toLowerCase()}/${location.state.toLowerCase()}/${location.city.toLowerCase()}/${location.custom_slug}`
-}
-
-async function getSitemapType (locationUrn, clientUrn) {
+const getSitemapType = loggerFuncWrapperAsync('getSitemapType', async (locationUrn, clientUrn) => {
   const { client } = await getClient(clientUrn)
   const { locations, domain, domain_type, vertical } = client
-  const home_page_url = getLocationHomePageUrl(locations, vertical, locationUrn)
-  const rootDomain = domain_type === 'SingleDomainClient'
-    ? domain : home_page_url
+  const home_page_url = getLocationHomePageUrl(locations, clientUrn, locationUrn)
+  const rootDomain = domain_type === 'SingleDomainClient' ? domain : home_page_url
 
   return {
     domain_type,
@@ -80,4 +73,11 @@ async function getSitemapType (locationUrn, clientUrn) {
     vertical,
     home_page_url
   }
+})
+
+module.exports = {
+  getLocation,
+  getClient,
+  getSitemapType,
+  getAuthToken
 }

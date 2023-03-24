@@ -152,7 +152,6 @@ module.exports = class Crawler {
   requestPage (url) {
     return this.axios.get(url)
       .then(res => res.data)
-      .catch(err => 'Failed')
   }
 
   nextPage () {
@@ -161,16 +160,19 @@ module.exports = class Crawler {
 
   async getSitemap () {
     if (this.locationUrn) {
-      const sitemapType = await hub.getSitemapType(this.locationUrn, this.clientUrn)
+      const {
+        domain_type,
+        rootDomain,
+        vertical,
+        home_page_url
+      } = await hub.getSitemapType(this.locationUrn, this.clientUrn)
 
-      if (sitemapType && sitemapType.home_page_url) {
-        this.homepage = sitemapType.home_page_url
-      }
-      this.rootDomain = sitemapType.rootDomain
-      this.vertical = sitemapType.vertical
+      this.homepage = home_page_url
+      this.rootDomain = rootDomain
+      this.vertical = vertical
 
-      if (sitemapType.domain_type === 'SingleDomainClient') {
-        this.sitemapUrl = await cms.getSitemapUrl(this.locationUrn, this.clientUrn, sitemapType.rootDomain)
+      if (domain_type === 'SingleDomainClient') {
+        this.sitemapUrl = await cms.getSitemapUrl(this.locationUrn, this.clientUrn, rootDomain)
       } else {
         this.sitemapUrl = `${this.rootDomain}/sitemap.xml`
       }
@@ -179,7 +181,7 @@ module.exports = class Crawler {
       this.pages = pages.sites
       this.discoverLinks = false
     }
-  }
+}
 
   async getSiteSettings (clientUrn, locationUrn) {
     const client = await hub.getClient(clientUrn)
