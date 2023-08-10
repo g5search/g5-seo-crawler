@@ -10,13 +10,11 @@ app.get('/', (req, res) => res.send('I\'m Listening.'))
 
 app.post('/', async (req, res) => {
   try {
-    const { clientUrn, locationUrn } = req.body
-    console.log(clientUrn, locationUrn)
     const audit = new Audit(req.body)
     await audit.start()
-    res.json(audit.results)
+    const results = audit.results
+    res.json(results)
   } catch (err) {
-    console.log({ err })
     const formatAxiosError = (err) => ({
       status: err.response.status,
       url: err.response.config.url,
@@ -25,7 +23,7 @@ app.post('/', async (req, res) => {
     const response = err.isAxiosError
       ? formatAxiosError(err)
       : err.message
-    res.status(503).send(response)
+    res.send(response)
   }
 })
 

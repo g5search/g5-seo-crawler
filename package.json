@@ -1,6 +1,6 @@
 {
   "name": "g5-seo-crawler",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Analyzes websites for SEO markup",
   "main": "src/index.js",
   "config": {
